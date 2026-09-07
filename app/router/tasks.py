@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from sqlalchemy import select
@@ -8,7 +8,7 @@ from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 from app.db.models.task import Task
 from app.db.models.user import User
 from app.dependencies.auth import get_current_user
-
+from app.utils.background import log_task_creation
 
 router = APIRouter()
 
@@ -17,6 +17,7 @@ router = APIRouter()
 @router.post("/tasks", response_model=TaskResponse)
 async def create_task(
     task: TaskCreate,
+    backgroud_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -29,6 +30,11 @@ async def create_task(
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
+
+    backgroud_tasks.add_task(
+        log_task_creation,
+        new_task.id
+    )
 
     return new_task
    
