@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .router import tasks
+from .router import tasks, auth
 from app.db.models.task import Task
 
 
@@ -13,3 +13,4 @@ async def root():
 
 
 app.include_router(tasks.router)  # Included the tasks routes to main app
+app.include_router(auth.router)
